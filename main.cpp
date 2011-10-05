@@ -277,11 +277,31 @@ void usage()
     exit(1);
 }
 
+int create_new_migration(std::string const& name, int version)
+{
+	std::stringstream filename;
+	filename << name  << "-" << version << ".xdb";
+	std::fstream file(filename.str().c_str(), std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+    if(!file.good())
+    {
+        print_error("Unable to open new file: " + filename.str());
+        return 1;
+    }
+
+	file << "begin up" << std::endl << std::endl << "end up" << std::endl << std::endl;
+	file << "begin down" << std::endl << std::endl << "end down" << std::endl;
+
+	file.close();
+	return 0;
+}
+
 int main(int argc, char** argv)
 {
     std::vector<XDBFile> files;
     int source_version = 0;
     int target_version = 0;
+	std::string new_migration_name = "";
+	bool add_new_migration = false;
     bool dry_run = false;
 
     for(int argi = 1; argi < argc; argi++)
@@ -300,6 +320,13 @@ int main(int argc, char** argv)
 
             target_version = atoi(argv[argi]);
         }
+        else if(strcmp(argv[argi], "-a") == 0)
+		{
+            if(++argi >= argc)
+                usage();
+			add_new_migration = true;
+			new_migration_name = argv[argi];
+		}
         else if(strcmp(argv[argi], "-d") == 0)
             dry_run = true;
     }
@@ -307,17 +334,30 @@ int main(int argc, char** argv)
     if(db_files_from_dir(".", files))
         return 1;
 
-    start_transaction();
+	if(add_new_migration)
+	{
+		if(!dry_run && new_migration_name != "")
+		{
+			int new_version = 1;
+			if(!files.empty())
+				new_version = files[files.size()-1].version + 1;
+			
+			create_new_migration(new_migration_name, new_version);
+		}
+	}	
+	else
+	{
+		start_transaction();
 
-    if(target_version == 0)
-        target_version = files[files.size()-1].version;
+		if(target_version == 0)
+			target_version = files[files.size()-1].version;
 
-    migrate(files, source_version, target_version);
+		migrate(files, source_version, target_version);
 
-    if(!dry_run)
-        end_transaction();
-    else
-        rollback();
-
+		if(!dry_run)
+			end_transaction();
+		else
+			rollback();
+	}
     return 0;
 }
