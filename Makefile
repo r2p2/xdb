@@ -1,2 +1,7 @@
+EXE=xdb
+
 all:
-	g++ -o xdb main.cpp
+	g++ -o $(EXE) main.cpp
+
+clean:
+	rm $(EXE)
