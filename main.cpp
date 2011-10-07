@@ -319,7 +319,7 @@ int validate_source_version(std::vector<XDBFile> const& files, int source_versio
 
     if(is_version_in_file_list(files, source_version))
         return 0;
-    
+
     std::cerr << "There is no corresponding migration version to submitted source version." << std::endl;
     return 1;
 }
@@ -392,7 +392,7 @@ int main(int argc, char** argv)
             int new_version = 1;
             if(!files.empty())
                 new_version = files[files.size()-1].version + 1;
-    
+
             create_new_migration(new_migration_name, new_version);
         }
     }
