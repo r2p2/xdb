@@ -351,6 +351,10 @@ int main(int argc, char** argv)
 		}
         else if(strcmp(argv[argi], "-d") == 0)
             dry_run = true;
+        else
+        {
+            usage();
+        }
     }
 
     if(db_files_from_dir(".", files))
