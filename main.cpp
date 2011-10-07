@@ -295,6 +295,18 @@ int create_new_migration(std::string const& name, int version)
 	return 0;
 }
 
+bool is_version_in_file_list(std::vector<XDBFile> const& files, int version)
+{
+    std::vector<XDBFile>::const_iterator it;
+    for(it = files.begin(); it != files.end(); it++)
+    {
+        XDBFile const& file = *it;
+        if(file.version == version)
+            return true;
+    }
+    return false;
+}
+
 int validate_source_version(std::vector<XDBFile> const& files, int source_version)
 {
 	if(source_version == 0)
@@ -305,17 +317,30 @@ int validate_source_version(std::vector<XDBFile> const& files, int source_versio
 		return 1;
 	}
 
-    std::vector<XDBFile>::const_iterator it;
-	for(it = files.begin(); it != files.end(); it++)
-	{
-	    XDBFile const& file = *it;
-		if(file.version == source_version)
-			return 0;
-	}
+	if(is_version_in_file_list(files, source_version))
+        return 0;
 	
 	std::cerr << "There is no corresponding migration version to submitted source version." << std::endl;
 	return 1;
 }
+
+int validate_target_version(std::vector<XDBFile> const& files, int target_version)
+{
+    if(target_version == 0)
+        return 0;
+    else if(target_version < 0)
+    {
+        std::cerr << "Invalid target version value. Needs to be greater or equal 0." << std::endl;
+        return 1;
+    }
+
+    if(is_version_in_file_list(files, target_version))
+        return 0;
+
+    std::cerr << "There is no corresponding migration version to submitted target version." << std::endl;
+    return 1;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -375,6 +400,8 @@ int main(int argc, char** argv)
 	{
 		if(validate_source_version(files, source_version))
 			return 1;
+        if(validate_target_version(files, target_version))
+            return 1;
 
 		start_transaction();
 
