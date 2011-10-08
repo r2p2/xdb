@@ -1,0 +1,11 @@
+xdb
+
+This tool is kind of a clone of rails database migrations. It can be used to
+generate an SQL script to migrate a database up or down from one version
+to another.
+For that it needs no database access. So it is database independent but you
+have to say what the current and what the target version is.
+
+To prevent mistakes there is by default a transaction around. Which is currently
+not database independent. I try to find a simple solution for this
+issue, but for now it should work for Postgres and MySql.
