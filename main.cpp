@@ -248,11 +248,10 @@ void migrate(std::vector<XDBFile> const& files, int source_version, int target_v
     {
         if(source_version < target_version)
             it++;
-        else
-            it--;
     }
 
-    while(it!= files.end())
+    bool cont = true;
+    do
     {
         XDBFile const& file = *it;
 
@@ -267,9 +266,17 @@ void migrate(std::vector<XDBFile> const& files, int source_version, int target_v
             it--;
         }
 
-        if(file.version == target_version)
-            return;
-    }
+
+        if(source_version < target_version)
+        {
+            if(file.version == target_version || it == files.end())
+                cont = false;
+        }
+        else {
+            if(file.version -1 == target_version || file.version == 1)
+                cont = false;
+        }
+    } while(cont);
 }
 
 void usage()
@@ -350,6 +357,7 @@ int main(int argc, char** argv)
     std::string new_migration_name = "";
     bool add_new_migration = false;
     bool dry_run = false;
+    bool target_version_submitted = false;
 
     for(int argi = 1; argi < argc; argi++)
     {
@@ -366,6 +374,7 @@ int main(int argc, char** argv)
                 usage();
 
             target_version = atoi(argv[argi]);
+            target_version_submitted = true;
         }
         else if(strcmp(argv[argi], "-a") == 0)
         {
@@ -405,7 +414,7 @@ int main(int argc, char** argv)
 
         start_transaction();
 
-        if(target_version == 0)
+        if(!target_version_submitted)
             target_version = files[files.size()-1].version;
 
         migrate(files, source_version, target_version);
