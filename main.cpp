@@ -209,7 +209,7 @@ int db_files_from_dir(std::string const& directory, std::vector<XDBFile> &db_fil
 
 void start_transaction()
 {
-    std::cout << "begin transaction;" << std::endl;
+    std::cout << "begin;" << std::endl;
 }
 
 void end_transaction()
